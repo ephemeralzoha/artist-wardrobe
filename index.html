@@ -1,0 +1,265 @@
+<style>
+  body { margin: 0; overflow: hidden;}
+  img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
+  #stage { position: relative; margin: 0 auto; width: min(100vw, 56.25vh); height: min(177.78vw, 100vh); overflow: hidden; touch-action:none ;}
+  .bg { width: 100%; height: 100%; display: block; }
+  .star { position: absolute; width: 65%; height: 65%; mix-blend-mode: multiply; pointer-events: none;}
+  #star1 { left: 63.1%; top: -20%; }
+  #star2 { left: -23.1%; top: 59.1%; }
+  
+/* STEP 14: FLOATING STAR ANIMATION */
+
+#star1 {
+  animation: floatStar1 9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+#star2 {
+  animation: floatStar2 11s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes floatStar1 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(-6deg) scale(1);
+  }
+
+  50% {
+    transform: translate(-14px, 18px) rotate(8deg) scale(1.08);
+  }
+}
+
+@keyframes floatStar2 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(10deg) scale(1);
+  }
+
+  50% {
+    transform: translate(16px, -20px) rotate(-6deg) scale(0.93);
+  }
+  @media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none !important;
+  }
+}
+}
+
+  .shirt { position: absolute; top: 32.2%; height: 28.8%; transition: all 0.9s, rotate 0s;
+    transform-origin:0 0;
+    touch-action: none; 
+  }
+  #green { left: 30.1%; transform: translateX(-45.6%);}
+  #red { left: 43.4%; transform: translateX(-45.7%);}
+  #white { left: 56.2%; transform: translateX(-45.1%);}
+  #rainbow { left: 68.3%; transform: translateX(-35.7%); }
+    .shirt[src*="shirt"] { clip-path: inset(0 25% 0 27%); }
+  .shirt[src*="front"] { clip-path: polygon(35% 0%, 65% 0%, 66% 18%, 91% 30%, 91% 57%, 78% 60%, 78% 100%, 28% 100%, 28% 60%, 15% 57%, 15% 30%, 34% 18%); }
+  #rainbow[src*="shirt"] { clip-path: inset(0 35% 0 17%); } 
+  .detail .bg {
+    filter: blur(6px);
+    opacity: 0.55;
+  }
+  .detail .star {
+    filter: blur(6px);
+    opacity: 0.3;
+  }
+  .detail .shirt:not(.selected) {
+    filter: blur(5px);
+    opacity: 0.4;
+  }
+  
+</style>
+<div id="stage">
+  <img class="bg" src="img/rack.jpg">
+  <img class="star" id="star1" src="img/star.jpg"> 
+  <img class="star" id="star2"  src="img/star.jpg">
+  <img class="shirt" id="green" src="img/green-shirt.png">
+  <img class="shirt" id="red" src ="img/red-shirt.png">
+  <img class="shirt" id="white" src ="img/white-shirt.png">
+  <img class="shirt" id="rainbow" src ="img/rainbow-shirt.png"> 
+</div>
+<script>
+ const green= document.getElementById("green");
+ const red= document.getElementById("red");
+ const white= document.getElementById("white");
+ const rainbow= document.getElementById("rainbow");
+  let current= null;
+  let zoomed= null;
+  let dragged= false;
+ function showfront(shirt,file,move) 
+ {
+   shirt.src= file;
+   shirt.style.transform= move;
+   shirt.style.zIndex= "5";
+ }
+ function showside(shirt,file,move) {
+   shirt.src= file;
+   shirt.style.transform= move;
+   shirt.style.zIndex= "1";
+ }
+ function turnback() {
+   if(current === "green") {
+     showside(green, "img/green-shirt.png", "translateX(-45.6%)");
+   }
+   if(current === "red") {
+     showside(red, "img/red-shirt.png", "translateX(-45.7%)"); 
+   }
+   if(current === "white") {
+     showside(white, "img/white-shirt.png", "translateX(-45.1%)");
+   }
+   if (current === "rainbow") {
+     showside(rainbow, "img/rainbow-shirt.png", "translateX(-35.7%)");
+   }
+   current = null;
+ }
+ function zoomin(shirt) {
+    shirt.style.left = "50%";
+    shirt.style.top = "28.1%";
+    shirt.style.height = "51.8%";
+    shirt.style.zIndex = "20";
+    shirt.classList.add("selected");
+    document.getElementById("stage").classList.add("detail");
+    zoomed = shirt;
+  }
+
+  function zoomout() {
+    zoomed.style.left = "";
+    zoomed.style.top = "";
+    zoomed.style.height = "";
+    zoomed.style.zIndex = "5";
+    zoomed.classList.remove("selected");
+    document.getElementById("stage").classList.remove("detail");
+    zoomed = null;
+  }
+  function tap(shirt,name,file,move)
+  {
+    if (dragged) {
+      dragged= false;
+      return;
+    }
+
+    if(zoomed !== null) {
+      zoomout();
+      return;
+    }
+    if (current === name) {
+      zoomin(shirt);
+      return;
+    }
+    turnback();
+    showfront(shirt,file,move);
+    current=name;
+  }
+ green.onclick = function() {
+   tap(green ,"green","img/green-front.png", "translateX(-52.8%)");
+ };
+ red.onclick = function() {
+   tap(red,"red","img/red-front.png", "translateX(-51.6%)");
+   };
+ white.onclick = function() {
+   tap(white,"white", "img/white-front.png",  "translateX(-50.7%)"); 
+ };
+ rainbow.onclick= function() {
+   tap(rainbow,"rainbow", "img/rainbow-front.png", "translateX(-50.1%)" );
+ };
+ document.getElementById("stage").onclick = function(e) {
+
+  if (zoomed !== null && !e.target.classList.contains("shirt")) {
+    zoomout();
+  }
+};
+ // ===== STEP 14: swing engine =====
+ const shirts = [green, red, white, rainbow];
+ const angle = [0, 0, 0, 0];
+ const speed = [0, 0, 0, 0];
+ let swinging = false;
+ let lastTime = 0;
+
+ function swing(now) {
+   let dt = (now - lastTime) / 1000;
+   if (!(dt > 0) || dt > 0.033) { dt = 0.016; }
+   lastTime = now;
+   let stillMoving = false;
+
+   for (let i = 0; i < shirts.length; i++) {
+     let force = -34 * angle[i] - 2.6 * speed[i];
+     if (i > 0) { force += 7 * (angle[i - 1] - angle[i]); }
+     if (i < shirts.length - 1) { force += 7 * (angle[i + 1] - angle[i]); }
+
+     speed[i] += force * dt;
+     angle[i] += speed[i] * dt;
+     if (angle[i] > 30) { angle[i] = 30; }
+     if (angle[i] < -30) { angle[i] = -30; }
+
+     if (Math.abs(angle[i]) < 0.02 && Math.abs(speed[i]) < 0.05) {
+       angle[i] = 0;
+       speed[i] = 0;
+       shirts[i].style.rotate = "";
+     } else {
+       stillMoving = true;
+       shirts[i].style.rotate = angle[i].toFixed(2) + "deg";
+     }
+   }
+
+   if (stillMoving) { requestAnimationFrame(swing); } else { swinging = false; }
+ }
+
+ function kick(i, push) {
+   if (i < 0 || i >= shirts.length) { return; }
+   if (push > 160) { push = 160; }
+   if (push < -160) { push = -160; }
+   speed[i] += push;
+   if (!swinging) {
+     swinging = true;
+     lastTime = performance.now();
+     requestAnimationFrame(swing);
+   }
+ }
+ // ===== STEP 14: the finger =====
+ const stage = document.getElementById("stage");
+ const hookX = [0.301, 0.434, 0.562, 0.683];
+ let fingerDown = false;
+ let lastX = 0;
+ let startX = 0;
+ let startY = 0;
+
+ stage.onpointerdown = function(e) {
+   const box = stage.getBoundingClientRect();
+   fingerDown = true;
+   dragged = false;
+   startX = e.clientX;
+   startY = e.clientY;
+   lastX = e.clientX - box.left;
+ };
+
+ stage.onpointermove = function(e) {
+   if (!fingerDown) { return; }
+   if (Math.hypot(e.clientX - startX, e.clientY - startY) > 10) {
+     dragged = true;
+   }
+   if (zoomed !== null) { return; }
+
+   const box = stage.getBoundingClientRect();
+   const x = e.clientX - box.left;
+   const y = e.clientY - box.top;
+   const dx = x - lastX;
+   const leftEnd = Math.min(lastX, x);
+   const rightEnd = Math.max(lastX, x);
+   lastX = x;
+
+   if (y < box.height * 0.322 || y > box.height * 0.61) { return; }
+
+   for (let i = 0; i < shirts.length; i++) {
+     const zoneLeft = box.width * (hookX[i] - 0.06);
+     const zoneRight = box.width * (hookX[i] + 0.06);
+     if (rightEnd >= zoneLeft && leftEnd <= zoneRight) {
+       kick(i, -dx / box.width * 1100);
+     }
+   }
+ };
+
+ function letGo() { fingerDown = false; }
+ document.onpointerup = letGo;
+ document.onpointercancel = letGo;
+ 
+</script>
